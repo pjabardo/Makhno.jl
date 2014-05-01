@@ -1,4 +1,3 @@
-include("mesh2d.jl")
 
 module Nektar
 using Mesh2d
@@ -60,7 +59,7 @@ function bndry_sec(rea, isec, nterms=2)
     nums = [parsefloat(strip(ss)) for ss in s[2:end]]
     el = convert(Int, round(nums[1]))
     ed = convert(Int, round(nums[2]))
-    p = nums[3:]
+    p = nums[3:end]
     if islower(tag)
         funs = rea[(isec+1):(isec+nterms)]
         isec += nterms + 1

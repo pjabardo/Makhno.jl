@@ -1,4 +1,4 @@
-
+using Jacobi
 
 
 type Basis2d
@@ -362,7 +362,7 @@ function gradient!(el::Element2d, f, dx, dy)
     end
 end
 
-function gradient(el::element2d, f)
+function gradient(el::Element2d, f)
     Q = el.Q
     dx = zeros(Q,Q)
     dy = zeros(Q,Q)

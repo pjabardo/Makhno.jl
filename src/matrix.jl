@@ -1,7 +1,12 @@
 
+abstract LinearSolver
 
 
-type CholeskySolver
+abstract StaticCondensation <: LinearSolver
+abstract DirectStaticCondensation <: StaticCondensation
+
+
+type CholeskySolver <: DirectStaticCondensation
 
     bmap::Array{Int,2}
     nel::Int
@@ -13,3 +18,4 @@ type CholeskySolver
 
     A::Array{Float64,2}
 end
+
