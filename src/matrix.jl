@@ -1,3 +1,8 @@
+using Base.LinAlg.LAPACK.getrf!
+using Base.LinAlg.LAPACK.getrs!
+using Base.LinAlg.BLAS.gemm!
+using Base.LinAlg.BLAS.gemv!
+using ArrayViews
 
 abstract LinearSolver
 
@@ -11,13 +16,36 @@ type CholeskySolver <: DirectStaticCondensation
     nel::Int
     nb::Int
     nbslv::Int
+    bwd::Int
     
+<<<<<<< HEAD
+    nbe::Int
+    nie::Int
+
+    A2::Array{Float64, 2}
+    X::Array{Float64,3}
+    iAii::Array{Float64,2}
+
+    function CholekySolver(bmap::Array{Int,2}, nb, nbslv, Q)
+        nel = size(bmap,2)
+        bwd = bandwidth(bmap, nbslv)
+
+        nbe = 4 + 4*(Q-2)
+        nie = Q*Q-nbe
+
+        A2 = zeros(bwd+1, nbslv)
+        X = zeros(nie, nbe, nel)
+        iAii = zeros(div(nie*(nie+1),2), nel)
+        new(bmap, nel, nb, nbslv, bwd, nbe, nie, A2, X, iAii)
+    end
+=======
     neb::Int
     nei::Int
     
     A::Array{Float64,2}
     Aii::Array{Float64,2}
     X::Array{Float64,3}
+>>>>>>> ef030efb9656085dd4f7e05f695cbdb6bdca1eb0
 end
 
 
@@ -69,6 +97,31 @@ function add_matrix(solver::CholeskySolver, bmap, e, Abb, Aib, Aii)
 
     assemble(solver, Abb)
     
+<<<<<<< HEAD
+function add_matrix(solver::CholeskySolver, e, Abb, Aib, Aii)
+
+    
+    iAii = view(solver.iAii, :, e)
+    X = view(solver.X, :, :, e)
+    
+    sym2pckd!(Aii, iAii, 'L')
+
+    tmp,info = pptrf!('L', iAii)
+
+    copy!(X, Aib)
+    
+    pptrs!('L', iAii, X)
+
+    
+    gemm!('T', 'N', -1.0, X, Aib, 1.0, Abb)
+    
+    assemble(solver, e, Abb)
+end
+
+
+function assemble(solver::ChokeskySolver, e, Ae)
+=======
+>>>>>>> ef030efb9656085dd4f7e05f695cbdb6bdca1eb0
 
 end
 
@@ -96,3 +149,49 @@ function assemble(solver::ChokeskySolver, bmap, A)
 
 end
     
+    bm = view(solver.bmap, :, 2)
+    nbe = solver.nbe
+    
+    for i = 1:nbe
+        ig = bm[i]
+        if ig <= nblsv
+            for j = 1:nbe
+                jg = bm[j]
+                if jg >= ig
+                    solver.A2[ig, jg-ig+1] += A[j,i]
+                end
+            end
+        end
+    end
+
+end
+
+function trf(solver::CholeskySolver)
+
+    pbtrf('L', solver.bwd, solver.A2)
+
+end
+
+
+function static_cond(solver::CholeskySolver, e, fbi)
+
+    nbe = solver.nbe
+    nbi = solver.nie
+    
+    fb = view(fbi, 1:nbe)
+    fi = view(fbi, (nbe+1):(nbe+nie))
+
+    gemv('T', -1.0, view(solver.X, :, :, e), fi, 1.0, fb)
+    
+end
+
+function solve!(solver::Cholesky, xbi)
+
+    bmap = solver.bmap
+    nbslv = solver.nbslv
+    bwd = solver.bwd
+    
+    xb = view(xbi, 1:nbslv)
+    pbtrs!('L', solver.bwd, solver.A2, xb)
+
+    #xbie = zeros(solver.nbe

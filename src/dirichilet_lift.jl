@@ -28,7 +28,7 @@ type DirichiletLift
             end
         end
         
-        A = zeros(nd, nv)
+        A = zeros(nv, nd)
 
         new(n, nd, nv, idx, vidx, A)
     end
@@ -47,7 +47,7 @@ function set_dirichilet_matrix(dlift::DirichiletLift, M)
     for i = 1:nv
         iv = vidx[i]
         for k = 1:nd
-            A[k,i] = M[idx[k],iv]
+            A[i,k] = M[iv, idx[k]]
         end
     end
 
@@ -64,9 +64,25 @@ function lift(dlift::DirichiletLift, f)
 
     for i = 1:nv
         iv = vidx[i]
-        b = f[iv]
         for k = 1:nd
-            b -= A[k,i] * f[idx[k]]
+            f[iv] -= A[i,k] * f[idx[k]]
+        end
+    end
+end
+
+
+function lift(dlift::DirichiletLift, f, u)
+
+    idx = dlift.idx
+    nv = dlift.nv
+    nd = dlift.nd
+    vidx = dlift.vidx
+    A = dlift.A
+
+    for i = 1:nv
+        iv = vidx[i]
+        for k = 1:nd
+            f[iv] -= A[i,k] * u[idx[k]]
         end
     end
 end
